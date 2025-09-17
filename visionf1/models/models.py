@@ -12,11 +12,11 @@ class DriverStanding(BaseModel):
     """
     position: int
     driver: str
-    driver_code: str
+    driverCode: str
     nationality: str
-    nationality_code: str
+    nationalityCode: str
     team: str
-    team_code: str
+    teamCode: str
     points: int
 
 class DriverStandingsResponse(BaseModel):
