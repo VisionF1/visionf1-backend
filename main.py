@@ -7,7 +7,6 @@ import logging
 import os
 from fastapi import FastAPI
 from visionf1.router.router import router as course_router
-from fastapi.exceptions import RequestValidationError
 
 environment = os.getenv('ENVIRONMENT', 'development')
 
@@ -17,6 +16,8 @@ logging.basicConfig(
         level=log_level,
         datefmt='%Y-%m-%d %H:%M:%S',
     )
+logging.getLogger("pymongo").setLevel(logging.WARNING) # Reduce pymongo logging verbosity
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
