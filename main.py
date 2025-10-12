@@ -1,5 +1,5 @@
 """
-Main entry point for ClassConnect Content Service API.
+Main entry point for VisionF1 Content Service API.
 Sets up FastAPI app, router, and exception handlers.
 """
 
