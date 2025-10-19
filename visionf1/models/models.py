@@ -47,13 +47,18 @@ class Driver(BaseModel):
     """
     Model representing a driver.
     """
-    firstName: str = None
-    lastName: str = None
+    driverId: str
+    driverNumber: int
     driverCode: str
-    nationalityCode2: str = None
-    nationalityCode3: str = None
-    team: str = None
-    teamCode: str = None
+    driverUrl: str
+    firstName: str
+    lastName: str
+    dateOfBirth: datetime
+    driverNationality: str
+    nationalityCode2: str
+    nationalityCode3: str
+    team: str
+    teamCode: str
 
 class DriversResponse(BaseModel):
     """
@@ -69,13 +74,13 @@ class UpcomingGP(BaseModel):
     season: int
     round: int
     name: str
-    circuitId: str = None
-    circuit: str = None
-    countryCode: str = None
-    country: str = None
-    locality: str = None
-    startDate: datetime = None
-    endDate: datetime = None
+    circuitId: str
+    circuit: str
+    countryCode: str
+    country: str
+    locality: str
+    startDate: datetime
+    endDate: datetime
 
 class UpcomingGPResponse(BaseModel):
     """
