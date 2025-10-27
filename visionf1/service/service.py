@@ -3,7 +3,7 @@ Service layer: Data managing logic.
 """
 
 import logging
-from visionf1.database.database import get_driver_standings, get_team_standings, get_drivers, get_upcoming_gp
+from visionf1.database.database import get_driver_standings, get_team_standings, get_drivers, get_upcoming_gp, get_events
 from visionf1.models.models import DriverStanding
 from typing import List
 
@@ -37,3 +37,10 @@ def obtain_upcoming_gp() -> List[DriverStanding]:
     """
     logger.debug("Obtaining upcoming GP entries.")
     return get_upcoming_gp()
+
+def obtain_events(season: int = None):
+    """
+    Retrieves stored events (optionally filtered by season).
+    """
+    logger.debug(f"Obtaining events for season={season}.")
+    return get_events(season=season)

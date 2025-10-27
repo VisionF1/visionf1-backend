@@ -88,6 +88,34 @@ class UpcomingGPResponse(BaseModel):
     """
     data: List[UpcomingGP]
 
+class Event(BaseModel):
+    """
+    Schema for event response.
+    """
+    event_id: str
+    season: int
+    round: int
+    event_name: str
+    country: str
+    location: str
+    event_date: datetime
+    event_format: str
+    event_status: str
+    circuit_id: str
+    circuit_name: str
+    n_drivers: int
+    driver_codes: List[str]
+    driver_names: List[str]
+    n_teams: int
+    team_codes: List[str]
+    team_names: List[str]
+    team_colors: List[str]
+    winner: str
+    pole: str
+
+class EventsResponse(BaseModel):
+    data: List[Event]
+
 class ErrorResponse(BaseModel):
     """
     Error response model following RFC 7807.

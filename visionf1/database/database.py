@@ -6,7 +6,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP
+from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event
 from typing import List
 
 load_dotenv()
@@ -26,6 +26,7 @@ driver_standings_collection = database.driver_standings
 team_standings_collection = database.team_standings
 drivers_collection = database.drivers
 upcoming_gp_collection = database.upcoming_gp
+events_collection = database.events
 
 def get_driver_standings() -> List[DriverStanding]:
     """
@@ -114,4 +115,27 @@ def get_upcoming_gp() -> UpcomingGP:
         return upcoming_gp
     except Exception as e:
         logger.error(f"Error retrieving upcoming GP from MongoDB: {e}")
+        raise e
+
+def get_events(season: int = None) -> List[UpcomingGP]:
+    """
+    Retrieves events from MongoDB. If season is provided, filters by season.
+    """
+    logger.debug("Retrieving events from MongoDB.")
+    try:
+        query = {}
+        if season is not None:
+            query["season"] = int(season)
+
+        cursor = events_collection.find(query).sort([("season", 1), ("round", 1)])
+        events = []
+        for doc in cursor:
+            doc.pop("_id", None)
+            # Convert the MongoDB document to Event
+            # Exclude the _id field that MongoDB automatically adds
+            events.append(Event(**doc))
+        logger.debug(f"Retrieved {len(events)} events from MongoDB.")
+        return events
+    except Exception as e:
+        logger.error(f"Error retrieving events from MongoDB: {e}")
         raise e

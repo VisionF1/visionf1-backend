@@ -4,8 +4,8 @@ Router definitions for VisionF1 endpoints.
 
 import logging
 from fastapi import APIRouter
-from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse
+from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse
 
 logger = logging.getLogger(__name__)
 
@@ -45,3 +45,12 @@ async def get_upcoming_gp_endpoint():
     """
     logger.info("GET /upcoming-gp endpoint called.")
     return get_upcoming_gp_controller()
+
+@router.get("/events", response_model=EventsResponse, status_code=200, tags=["GET /events"])
+async def get_events_endpoint(season: int = None):
+    """
+    GET /events?season=YYYY
+    If season is provided, returns events for that year; otherwise returns all events.
+    """
+    logger.info(f"GET /events endpoint called. Season={season}")
+    return get_events_controller(season=season)
