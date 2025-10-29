@@ -142,6 +142,32 @@ class SeasonsResponse(BaseModel):
     """
     data: List[int]
 
+class RacePace(BaseModel):
+    """
+    Model representing a race pace entry.
+    """
+    race_pace_id: str
+    season: int
+    round: int
+    event: str
+    driver: str
+    driver_first_name: str
+    driver_last_name: str
+    driver_position: int
+    driver_color: str
+    team: str
+    team_name: str
+    team_color: str
+    avg_laptime: float
+    std_laptime: float | None
+    race_pace_position: int
+
+class RacePaceResponse(BaseModel):
+    """
+    Schema for race pace response.
+    """
+    data: List[RacePace]
+
 class ErrorResponse(BaseModel):
     """
     Error response model following RFC 7807.

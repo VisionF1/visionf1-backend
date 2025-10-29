@@ -4,8 +4,8 @@ Router definitions for VisionF1 endpoints.
 
 import logging
 from fastapi import APIRouter
-from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse
+from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller, get_race_pace_controller
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse
 
 logger = logging.getLogger(__name__)
 
@@ -71,3 +71,14 @@ async def get_seasons_endpoint():
     """
     logger.info("GET /seasons called")
     return get_seasons_controller()
+
+@router.get("/race-pace", response_model=RacePaceResponse, status_code=200, tags=["GET /race-pace"])
+async def get_race_pace_endpoint(season: int = None, round: int = None, event_id: str = None):
+    """
+    Routes GET /race-pace?season=YYYY&round=N endpoint
+            or
+           GET /race-pace?event_id=SEASON_ROUND_EventName endpoint.
+    Returns race pace entries for all drivers in the GP.
+    """
+    logger.info(f"GET /race-pace called season={season} round={round} event_id={event_id}")
+    return get_race_pace_controller(season=season, round=round, event_id=event_id)

@@ -3,8 +3,8 @@ Controller handles request validation, response formatting, and interaction with
 """
 
 import logging
-from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse
+from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons, obtain_race_pace
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +65,36 @@ def get_summary_events_controller(season: int = None) -> EventsSummaryResponse:
 
 def get_seasons_controller() -> SeasonsResponse:
     """
-    Controller returning available seasons.
+    Retrieves available seasons.
     """
     logger.info("Retrieving distinct seasons")
     seasons = obtain_seasons()
     return SeasonsResponse(data=seasons)
+
+def _find_bad_entries(entries):
+    import math
+    bad = []
+    for i, e in enumerate(entries):
+        # e puede ser Pydantic model o dict
+        d = e.dict() if hasattr(e, "dict") else dict(e)
+        for k, v in d.items():
+            # detectar NaN en floats y numpy scalars convertibles
+            try:
+                if isinstance(v, float) and math.isnan(v):
+                    bad.append((i, k, v, d))
+            except Exception:
+                pass
+    return bad
+
+def get_race_pace_controller(season: int = None, round: int = None, event_id: str = None) -> RacePaceResponse:
+    """
+    Retrieves race pace data (optionally filtered by season, round, or event_id).
+    """
+    rp = obtain_race_pace(season=season, round=round, event_id=event_id)
+    bad = _find_bad_entries(rp)
+    if bad:
+        for idx, key, val, doc in bad:
+            logger.error(f"Bad value in race_pace result idx={idx} key={key} val={val} doc_sample={repr(doc)[:1000]}")
+    logger.info(f"Retrieving race pace for season={season} round={round} event_id={event_id}")
+    race_pace = obtain_race_pace(season=season, round=round, event_id=event_id)
+    return RacePaceResponse(data=race_pace)

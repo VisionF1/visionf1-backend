@@ -6,7 +6,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary
+from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary, RacePace
 from typing import List
 
 load_dotenv()
@@ -27,6 +27,7 @@ team_standings_collection = database.team_standings
 drivers_collection = database.drivers
 upcoming_gp_collection = database.upcoming_gp
 events_collection = database.events
+race_pace_collection = database.race_pace
 
 def get_driver_standings() -> List[DriverStanding]:
     """
@@ -185,4 +186,32 @@ def get_seasons() -> List[int]:
         return sorted([int(s) for s in seasons if s is not None])
     except Exception as e:
         logger.error(f"Error fetching seasons: {e}")
+        raise e
+    
+def get_race_pace(season: int = None, round: int = None, event_id: str = None) -> List[RacePace]:
+    """
+    Retrieve race pace documents filtered by season+round or event_id.
+    """
+    logger.debug(f"Retrieving race pace season={season} round={round} event_id={event_id}")
+    try:
+        query = {}
+        if event_id:
+            query["race_pace_id"] = event_id
+        else:
+            if season is not None:
+                query["season"] = int(season)
+            if round is not None:
+                query["round"] = int(round)
+
+        cursor = race_pace_collection.find(query, projection={"_id": False}).sort([("season", 1), ("round", 1), ("driver", 1)])
+        results = []
+        for doc in cursor:
+            doc.pop("_id", None)
+            # Convert the MongoDB document to Event
+            # Exclude the _id field that MongoDB automatically adds
+            results.append(RacePace(**doc))
+        logger.debug(f"Retrieved {len(results)} race pace records.")
+        return results
+    except Exception as e:
+        logger.error(f"Error retrieving race pace from MongoDB: {e}")
         raise e
