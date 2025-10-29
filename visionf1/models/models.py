@@ -90,7 +90,7 @@ class UpcomingGPResponse(BaseModel):
 
 class Event(BaseModel):
     """
-    Schema for event response.
+    Model representing an event.
     """
     event_id: str
     season: int
@@ -110,11 +110,37 @@ class Event(BaseModel):
     team_codes: List[str]
     team_names: List[str]
     team_colors: List[str]
-    winner: str
-    pole: str
+    winner: str | None
+    pole: str | None
 
 class EventsResponse(BaseModel):
+    """
+    Schema for event response.
+    """
     data: List[Event]
+
+class EventSummary(BaseModel):
+    """
+    Model representing a summarized event.
+    """
+    event_id: str
+    season: int
+    round: int
+    event_name: str
+    event_date: datetime
+    event_status: str
+
+class EventsSummaryResponse(BaseModel):
+    """
+    Schema for summarized event response.
+    """
+    data: List[EventSummary]
+
+class SeasonsResponse(BaseModel):
+    """
+    Schema for seasons response.
+    """
+    data: List[int]
 
 class ErrorResponse(BaseModel):
     """

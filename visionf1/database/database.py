@@ -6,7 +6,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event
+from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary
 from typing import List
 
 load_dotenv()
@@ -117,9 +117,10 @@ def get_upcoming_gp() -> UpcomingGP:
         logger.error(f"Error retrieving upcoming GP from MongoDB: {e}")
         raise e
 
-def get_events(season: int = None) -> List[UpcomingGP]:
+def get_events(season: int = None) -> List[Event]:
     """
-    Retrieves events from MongoDB. If season is provided, filters by season.
+    Retrieves events from MongoDB.
+    If season is provided, filters by season.
     """
     logger.debug("Retrieving events from MongoDB.")
     try:
@@ -138,4 +139,50 @@ def get_events(season: int = None) -> List[UpcomingGP]:
         return events
     except Exception as e:
         logger.error(f"Error retrieving events from MongoDB: {e}")
+        raise e
+    
+def get_summary_events(season: int = None) -> List[EventSummary]:
+    """
+    Retrieves lightweight events (projection) from MongoDB to reduce payload.
+    """
+    logger.debug(f"Retrieving summary events for season={season} from MongoDB.")
+    try:
+        query = {}
+        if season is not None:
+            query["season"] = int(season)
+
+        projection = {
+                "_id": False,
+                "event_id": True,
+                "season": True,
+                "round": True,
+                "event_name": True,
+                "event_date": True,
+                "event_status": True,
+            }
+
+        cursor = events_collection.find(query, projection).sort([("season", 1), ("round", 1)])
+        summary_events = []
+        for doc in cursor:
+            doc.pop("_id", None)
+            # Convert the MongoDB document to Event
+            # Exclude the _id field that MongoDB automatically adds
+            summary_events.append(EventSummary(**doc))
+        logger.debug(f"Retrieved {len(summary_events)} summary events from MongoDB.")
+        return summary_events
+    except Exception as e:
+        logger.error(f"Error retrieving summary events from MongoDB: {e}")
+        raise e
+
+def get_seasons() -> List[int]:
+    """
+    Return sorted list of distinct seasons found in events collection from MongoDB.
+    """
+    logger.debug("Retrieving seasons from MongoDB.")
+    try:
+        seasons = events_collection.distinct("season")
+        logger.debug(f"Retrieved {len(seasons)} seasons from MongoDB.")
+        return sorted([int(s) for s in seasons if s is not None])
+    except Exception as e:
+        logger.error(f"Error fetching seasons: {e}")
         raise e

@@ -4,8 +4,8 @@ Router definitions for VisionF1 endpoints.
 
 import logging
 from fastapi import APIRouter
-from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse
+from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +49,25 @@ async def get_upcoming_gp_endpoint():
 @router.get("/events", response_model=EventsResponse, status_code=200, tags=["GET /events"])
 async def get_events_endpoint(season: int = None):
     """
-    GET /events?season=YYYY
+    Routes GET /events?season=YYYY endpoint.
     If season is provided, returns events for that year; otherwise returns all events.
     """
     logger.info(f"GET /events endpoint called. Season={season}")
     return get_events_controller(season=season)
+
+@router.get("/summary-events", response_model=EventsSummaryResponse, status_code=200, tags=["GET /summary-events"])
+async def get_summary_events_endpoint(season: int = None):
+    """
+    Routes GET /summary-events?season=YYYY endpoint.
+    If season is provided, returns summary events for that year; otherwise returns all summary events.
+    """
+    logger.info(f"GET /summary-events endpoint called. Season={season}")
+    return get_summary_events_controller(season=season)
+
+@router.get("/seasons", response_model=SeasonsResponse, status_code=200, tags=["GET /seasons"])
+async def get_seasons_endpoint():
+    """
+    Routes GET /seasons endpoint.
+    """
+    logger.info("GET /seasons called")
+    return get_seasons_controller()

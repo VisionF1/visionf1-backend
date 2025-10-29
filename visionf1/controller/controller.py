@@ -3,8 +3,8 @@ Controller handles request validation, response formatting, and interaction with
 """
 
 import logging
-from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse
+from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse
 
 logger = logging.getLogger(__name__)
 
@@ -53,3 +53,20 @@ def get_events_controller(season: int = None) -> EventsResponse:
     events = obtain_events(season=season)
     logger.debug(f"Events retrieved: {events}")
     return EventsResponse(data=events)
+
+def get_summary_events_controller(season: int = None) -> EventsSummaryResponse:
+    """
+    Retrieves summary events (optionally filtered by season).
+    """
+    logger.info(f"Retrieving summary events for season={season}...")
+    events = obtain_summary_events(season=season)
+    logger.debug(f"Summary events retrieved: {events}")
+    return EventsSummaryResponse(data=events)
+
+def get_seasons_controller() -> SeasonsResponse:
+    """
+    Controller returning available seasons.
+    """
+    logger.info("Retrieving distinct seasons")
+    seasons = obtain_seasons()
+    return SeasonsResponse(data=seasons)
