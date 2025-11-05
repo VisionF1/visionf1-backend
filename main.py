@@ -31,6 +31,7 @@ app = FastAPI(
 allowed_origins = [
     "http://localhost:3000",  # Next.js dev server
     "https://visionf1.vercel.app" # Production frontend
+    "https://visionf1.app" # Production frontend
 ]
 
 app.add_middleware(
