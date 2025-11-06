@@ -97,6 +97,7 @@ class Event(BaseModel):
     round: int
     event_name: str
     country: str
+    country_code: str
     location: str
     event_date: datetime
     event_format: str
