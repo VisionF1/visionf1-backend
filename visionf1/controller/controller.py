@@ -3,8 +3,10 @@ Controller handles request validation, response formatting, and interaction with
 """
 
 import logging
+import pandas as pd
 from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons, obtain_race_pace
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, RacePredictionInput, RacePredictionOutput, RacePredictionResponse
+from visionf1.ml.race_predictor import CachedRacePredictor
 
 logger = logging.getLogger(__name__)
 
@@ -98,3 +100,46 @@ def get_race_pace_controller(season: int = None, round: int = None, event_id: st
     logger.info(f"Retrieving race pace for season={season} round={round} event_id={event_id}")
     race_pace = obtain_race_pace(season=season, round=round, event_id=event_id)
     return RacePaceResponse(data=race_pace)
+
+def predict_race_controller(drivers: list[RacePredictionInput]) -> RacePredictionResponse:
+    """
+    Predicts race positions for a list of drivers.
+    
+    Args:
+        drivers: List of driver inputs for the same race
+    
+    Returns:
+        RacePredictionResponse with sorted predictions
+    """
+    logger.info(f"Predicting race for {len(drivers)} drivers...")
+    
+    # Convert Pydantic models to DataFrame
+    df_raw = pd.DataFrame([d.model_dump() for d in drivers])
+    
+    # Get predictor instance and predict
+    predictor = CachedRacePredictor()
+    predictions = predictor.predict(df_raw)
+    
+    # Create output with rankings
+    results = []
+    for i, pred in enumerate(predictions):
+        results.append({
+            "driver": drivers[i].driver,
+            "team": drivers[i].team,
+            "predicted_position": float(pred),
+            "rank": 0  # Will be assigned after sorting
+        })
+    
+    # Sort by predicted position and assign ranks
+    results.sort(key=lambda x: x["predicted_position"])
+    for rank, result in enumerate(results, start=1):
+        result["rank"] = rank
+    
+    response = RacePredictionResponse(
+        race_name=drivers[0].race_name,
+        year=drivers[0].year,
+        predictions=[RacePredictionOutput(**r) for r in results]
+    )
+    
+    logger.info(f"Predictions completed. Winner: {results[0]['driver']}")
+    return response

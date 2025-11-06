@@ -2,7 +2,7 @@
 Data models and schemas for the API.
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 from datetime import datetime
 
@@ -167,6 +167,37 @@ class RacePaceResponse(BaseModel):
     Schema for race pace response.
     """
     data: List[RacePace]
+
+class RacePredictionInput(BaseModel):
+    """
+    Input for race prediction endpoint.
+    """
+    driver: str = Field(..., example="VER", description="Driver code (e.g., VER, HAM)")
+    team: str = Field(..., example="Red Bull Racing", description="Team name")
+    race_name: str = Field(..., example="Singapore Grand Prix", description="Race name")
+    year: int = Field(2025, ge=2020, le=2030, description="Season year")
+    session_air_temp: float = Field(26.0, ge=-10, le=50, description="Air temperature in °C")
+    session_track_temp: float = Field(35.0, ge=-10, le=70, description="Track temperature in °C")
+    session_humidity: float = Field(60.0, ge=0, le=100, description="Humidity percentage")
+    session_rainfall: float = Field(0.0, ge=0, le=1, description="Rainfall (0=dry, 1=wet)")
+    circuit_type: str = Field("street", pattern="^(street|permanent)$", description="Circuit type")
+
+class RacePredictionOutput(BaseModel):
+    """
+    Single driver prediction output.
+    """
+    driver: str
+    team: str
+    predicted_position: float
+    rank: int
+
+class RacePredictionResponse(BaseModel):
+    """
+    Response with predictions for all drivers in the race.
+    """
+    race_name: str
+    year: int
+    predictions: List[RacePredictionOutput]
 
 class ErrorResponse(BaseModel):
     """

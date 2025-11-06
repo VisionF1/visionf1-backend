@@ -3,9 +3,9 @@ Router definitions for VisionF1 endpoints.
 """
 
 import logging
-from fastapi import APIRouter
-from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller, get_race_pace_controller
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse
+from fastapi import APIRouter, HTTPException
+from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller, get_race_pace_controller, predict_race_controller
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, RacePredictionInput, RacePredictionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -82,3 +82,47 @@ async def get_race_pace_endpoint(season: int = None, round: int = None, event_id
     """
     logger.info(f"GET /race-pace called season={season} round={round} event_id={event_id}")
     return get_race_pace_controller(season=season, round=round, event_id=event_id)
+
+@router.post("/predict-race", response_model=RacePredictionResponse, status_code=200, tags=["POST /predict-race"])
+async def predict_race_endpoint(drivers: list[RacePredictionInput]):
+    """
+    Predicts race positions for a grid of drivers.
+    
+    **Example request body:**
+    ```json
+    [
+      {
+        "driver": "VER",
+        "team": "Red Bull Racing",
+        "race_name": "Singapore Grand Prix",
+        "year": 2025,
+        "session_air_temp": 26.0,
+        "session_track_temp": 35.0,
+        "session_humidity": 60.0,
+        "session_rainfall": 0.0,
+        "circuit_type": "street"
+      },
+      {
+        "driver": "HAM",
+        "team": "Ferrari",
+        ...
+      }
+    ]
+    ```
+    
+    **Response:** Sorted predictions with ranks (1 = winner)
+    """
+    logger.info(f"POST /predict-race called with {len(drivers)} drivers")
+    
+    # Validation: all drivers must be for the same race
+    if len(drivers) == 0:
+        raise HTTPException(status_code=400, detail="At least one driver required")
+    
+    race_keys = {(d.race_name, d.year) for d in drivers}
+    if len(race_keys) > 1:
+        raise HTTPException(
+            status_code=400, 
+            detail="All drivers must be for the same race (race_name + year)"
+        )
+    
+    return predict_race_controller(drivers)
