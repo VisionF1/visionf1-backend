@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager for startup/shutdown events."""
-    logger.info("🚀 Application startup...")
+    logger.info("Application startup...")
     
     # Download ML artifacts from Cloudinary
     try:
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
             features_path=paths["feature_names"]
         )
         
-        logger.info("✅ ML predictor ready")
+        logger.info("ML predictor ready")
     except Exception as e:
         logger.error(f"Failed to initialize ML predictor: {e}")
         # raise  # Uncomment to force shutdown if it fails

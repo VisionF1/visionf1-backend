@@ -5,4 +5,5 @@ pymongo
 python-dotenv
 pandas
 cloudinary
+scikit-learn
 xgboost-cpu

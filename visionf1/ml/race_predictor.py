@@ -33,7 +33,7 @@ class CachedRacePredictor:
             logger.warning("Predictor already initialized, skipping...")
             return
         
-        logger.info("🚀 Initializing ML predictor...")
+        logger.info("Initializing ML predictor...")
         
         self.model = xgb.XGBRegressor()
         self.model.load_model(str(model_path))
@@ -45,7 +45,7 @@ class CachedRacePredictor:
         )
         
         self._initialized = True
-        logger.info("✅ Predictor ready")
+        logger.info("Predictor ready")
     
     def predict(self, df_input_data: pd.DataFrame) -> list[float]:
         """
