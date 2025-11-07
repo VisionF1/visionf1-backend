@@ -59,6 +59,7 @@ class Driver(BaseModel):
     nationalityCode3: str
     team: str
     teamCode: str
+    teamColor: str
 
 class DriversResponse(BaseModel):
     """
