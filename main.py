@@ -36,11 +36,7 @@ async def lifespan(app: FastAPI):
         
         # Initialize predictor
         predictor = CachedRacePredictor()
-        predictor.initialize(
-            model_path=paths["model"],
-            history_path=paths["history_store"],
-            features_path=paths["feature_names"]
-        )
+        predictor.initialize()
         
         logger.info("ML predictor ready")
     except Exception as e:

@@ -74,9 +74,14 @@ class ModelLoader:
             Dictionary mapping artifact names to local paths
         """
         artifacts = {
-            "model": ("portable_xgb.json", "portable_xgb.json"),
-            "history_store": ("history_store.pkl", "history_store.pkl"),
-            "feature_names": ("/feature_names.pkl", "feature_names.pkl"),
+            "inference_manifest": ("inference_manifest.json", "inference_manifest.json"),
+            "randomforest_model": ("randomforest_model.pkl", "randomforest_model.pkl"),
+            "quali_recent_model": ("quali_recent_model.pkl", "quali_recent_model.pkl"),
+            "driver_encoder": ("driver_encoder.pkl", "driver_encoder.pkl"),
+            "team_encoder": ("team_encoder.pkl", "team_encoder.pkl"),
+            "race_name_encoder": ("race_name_encoder.pkl", "race_name_encoder.pkl"),
+            "circuit_type_encoder": ("circuit_type_encoder.pkl", "circuit_type_encoder.pkl"),
+            "feature_names": ("feature_names.pkl", "feature_names.pkl"),
         }
         
         paths = {}

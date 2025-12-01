@@ -2,10 +2,8 @@
 Cached ML predictor for race position predictions.
 """
 import logging
-from pathlib import Path
 import pandas as pd
-import xgboost as xgb
-from visionf1.ml.slim_preprocessor import SlimPreprocessor
+from visionf1.core.predictors.simple_position_predictor.predictor import SimplePositionPredictor
 
 logger = logging.getLogger(__name__)
 
@@ -20,14 +18,9 @@ class CachedRacePredictor:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def initialize(self, model_path: Path, history_path: Path, features_path: Path):
+    def initialize(self):
         """
         Loads model and preprocessor (call once at startup).
-        
-        Args:
-            model_path: Path to portable_xgb.json
-            history_path: Path to history_store.pkl
-            features_path: Path to feature_names.pkl
         """
         if self._initialized:
             logger.warning("Predictor already initialized, skipping...")
@@ -35,14 +28,8 @@ class CachedRacePredictor:
         
         logger.info("Initializing ML predictor...")
         
-        self.model = xgb.XGBRegressor()
-        self.model.load_model(str(model_path))
-        
-        self.preprocessor = SlimPreprocessor(
-            history_store_path=str(history_path),
-            feature_names_path=str(features_path),
-            quiet=True
-        )
+        # SimplePositionPredictor handles its own loading from ./model_cache
+        self.predictor = SimplePositionPredictor(quiet=False)
         
         self._initialized = True
         logger.info("Predictor ready")
@@ -62,7 +49,65 @@ class CachedRacePredictor:
         if not self._initialized:
             raise RuntimeError("Predictor not initialized. Call initialize() first.")
         
-        X = self.preprocessor.transform(df_input_data)
-        predictions = self.model.predict(X)
+        # Ensure input has the expected columns for SimplePositionPredictor
+        # The predictor expects a DataFrame with specific columns.
+        # We pass the input dataframe directly as base_df.
         
-        return predictions.tolist()
+        # We might need to ensure 'rookie' and 'team_change' columns exist if they are not in input
+        # The API input might not provide them.
+        # Let's check if we need to enrich the data or if the predictor handles it.
+        # FeatureHelper.build_base_df() uses DRIVERS_2025 config to get rookie/team_change.
+        # If we pass base_df, we should probably ensure it has those columns if the model needs them.
+        
+        # For now, let's assume the predictor's FeatureHelper/DatasetBuilder handles missing columns or we rely on what's passed.
+        # Actually, SimplePositionPredictor.predict_positions_2025 calls db.build_X(base_df).
+        # db.build_X uses fh.align_columns(X) which fills missing with 0.0.
+        # But 'rookie' and 'team_change' are used in the output DataFrame construction in predict_positions_2025.
+        # So we should probably ensure they are present if we want the output to be correct.
+        
+        # However, for the purpose of getting a prediction list, we mainly need the model input features.
+        
+        # Enrich input data with rookie and team_change info from config
+        from visionf1.core.config import DRIVERS_2025
+        
+        if "rookie" not in df_input_data.columns:
+            df_input_data["rookie"] = df_input_data["driver"].apply(
+                lambda d: DRIVERS_2025.get(d, {}).get("rookie", False)
+            )
+            
+        if "team_change" not in df_input_data.columns:
+            df_input_data["team_change"] = df_input_data["driver"].apply(
+                lambda d: DRIVERS_2025.get(d, {}).get("team_change", False)
+            )
+        
+        results_df = self.predictor.predict_positions_2025(base_df=df_input_data)
+        
+        # The API expects a list of floats corresponding to the input order?
+        # The predict_positions_2025 sorts the output!
+        # We need to return predictions in the same order as input df_input_data if possible,
+        # or the API controller handles mapping back.
+        
+        # Let's check the controller.
+        # predict_race_controller(drivers) -> returns RacePredictionResponse which contains a list of predictions.
+        # The controller likely constructs the response.
+        # Wait, predict_race_controller calls predictor.predict(df).
+        # And returns... let's check controller.py.
+        
+        # For now, I will return the predicted_position column from the results, 
+        # but I need to make sure it matches the input order.
+        
+        # SimplePositionPredictor sorts the output.
+        # I should probably merge back to input or reindex.
+        
+        # Let's assume input has 'driver' column which is unique.
+        results_df = results_df.set_index("driver")
+        input_drivers = df_input_data["driver"].values
+        
+        predictions = []
+        for driver in input_drivers:
+            if driver in results_df.index:
+                predictions.append(results_df.loc[driver, "predicted_position"])
+            else:
+                predictions.append(20.0) # Fallback
+                
+        return predictions
