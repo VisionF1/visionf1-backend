@@ -80,6 +80,10 @@ class CachedRacePredictor:
                 lambda d: DRIVERS_2025.get(d, {}).get("team_change", False)
             )
         
+        # Ensure driver is the index, as SimplePositionPredictor expects it
+        if "driver" in df_input_data.columns:
+            df_input_data = df_input_data.set_index("driver", drop=False)
+
         results_df = self.predictor.predict_positions_2025(base_df=df_input_data)
         
         # The API expects a list of floats corresponding to the input order?

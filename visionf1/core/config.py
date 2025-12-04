@@ -33,9 +33,9 @@
 PREDICTION_CONFIG = {
     "next_race": {
         "year": 2025,
-        "race_name": "São Paulo Grand Prix", 
-        "circuit_name": "Interlagos",
-        "race_number": 21  # Número de carrera en la temporada 2025
+        "race_name": "Abu Dhabi Grand Prix", 
+        "circuit_name": "Yas Marina Circuit",
+        "race_number": 24  # Número de carrera en la temporada 2025
     },
     "use_historical_data": True,
     
