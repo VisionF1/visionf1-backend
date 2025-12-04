@@ -13,7 +13,6 @@ from visionf1.router.router import router
 from visionf1.ml.model_loader import ModelLoader
 from visionf1.ml.race_predictor import CachedRacePredictor
 from visionf1.ml.strategy_predictor import CachedStrategyPredictor
-from visionf1.router.strategy_router import router as strategy_router
 
 load_dotenv()
 
