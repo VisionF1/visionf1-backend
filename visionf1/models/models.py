@@ -201,6 +201,50 @@ class RacePredictionResponse(BaseModel):
     year: int
     predictions: List[RacePredictionOutput]
 
+class StrategyRequest(BaseModel):
+    """
+    Input for strategy prediction endpoint.
+    """
+    circuit: str
+    track_temp: float
+    air_temp: float
+    compounds: List[str] = ["SOFT", "MEDIUM", "HARD"]
+    max_stops: int = 2
+    fia_rule: bool = False
+    top_k: int = 5
+
+class Stint(BaseModel):
+    """
+    Stint model for strategy prediction.
+    """
+    compound: str
+    start_lap: int
+    end_lap: int
+
+class Window(BaseModel):
+    """
+    Window model for strategy prediction.
+    """
+    p25: int
+    p50: int
+    p75: int
+
+class StrategyPrediction(BaseModel):
+    """
+    Single strategy prediction output.
+    """
+    template: List[str]
+    stints: List[Stint]
+    windows: List[Window]
+    expected_race_time: float
+    probability: float
+
+class StrategyPredictionResponse(BaseModel):
+    """
+    Response with predictions for requested strategy.
+    """
+    predictions: List[StrategyPrediction]
+
 class ErrorResponse(BaseModel):
     """
     Error response model following RFC 7807.
