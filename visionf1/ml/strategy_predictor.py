@@ -307,7 +307,7 @@ class CachedStrategyPredictor:
                 air_temp: float,
                 compounds: List[str] = ("SOFT", "MEDIUM", "HARD"),
                 max_stops: int = 2,
-                fia_rule: bool = False,
+                fia_rule: bool = True,
                 top_k: int = 5) -> List[StrategyCandidate]:
         
         if not self._initialized:
