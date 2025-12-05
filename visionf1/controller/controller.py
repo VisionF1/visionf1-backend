@@ -5,8 +5,9 @@ Controller handles request validation, response formatting, and interaction with
 import logging
 import pandas as pd
 from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons, obtain_race_pace
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, RacePredictionInput, RacePredictionOutput, RacePredictionResponse
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, RacePredictionInput, RacePredictionOutput, RacePredictionResponse, StrategyRequest, StrategyPrediction, StrategyPredictionResponse, Stint, Window
 from visionf1.ml.race_predictor import CachedRacePredictor
+from visionf1.ml.strategy_predictor import CachedStrategyPredictor
 
 logger = logging.getLogger(__name__)
 
@@ -143,3 +144,51 @@ def predict_race_controller(drivers: list[RacePredictionInput]) -> RacePredictio
     
     logger.info(f"Predictions completed. Winner: {results[0]['driver']}")
     return response
+
+def predict_strategy_controller(req: StrategyRequest) -> StrategyPredictionResponse:
+    """
+    Predicts race strategy for a specific race.
+    
+    Args:
+        req: Strategy request containing circuit and other parameters
+    
+    Returns:
+        StrategyPredictionResponse with sorted predictions
+    """
+    logger.info(f"Predicting strategy for {req.circuit}")
+    
+    # Get predictor instance and predict
+    predictor = CachedStrategyPredictor()
+
+    candidates = predictor.predict(
+        circuit=req.circuit,
+        track_temp=req.track_temp,
+        air_temp=req.air_temp,
+        compounds=req.compounds,
+        max_stops=req.max_stops,
+        fia_rule=req.fia_rule,
+        top_k=req.top_k
+    )
+    
+    response = []
+    for c in candidates:
+        stints = [
+            Stint(compound=s[0], start_lap=s[1], end_lap=s[2]) 
+            for s in c.stints
+        ]
+        windows = [
+            Window(p25=w[0], p50=w[1], p75=w[2])
+            for w in c.windows
+        ]
+        response.append(StrategyPrediction(
+            template=c.template,
+            stints=stints,
+            windows=windows,
+            expected_race_time=c.expected_total_race_time,
+            probability=c.prob
+        ))
+
+    final_response = StrategyPredictionResponse(predictions=response)
+
+    logger.info(f"Strategy predicted for {req.circuit}")    
+    return final_response

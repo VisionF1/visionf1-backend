@@ -77,6 +77,9 @@ class ModelLoader:
             "model": ("portable_xgb.json", "portable_xgb.json"),
             "history_store": ("history_store.pkl", "history_store.pkl"),
             "feature_names": ("/feature_names.pkl", "feature_names.pkl"),
+            "survival_models": ("survival_models.pkl", "survival_models.pkl"),
+            "next_compound_clf": ("next_compound_clf.pkl", "next_compound_clf.pkl"),
+            "circuit_pitloss": ("circuit_pitloss.json", "circuit_pitloss.json"),
         }
         
         paths = {}

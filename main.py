@@ -5,12 +5,16 @@ Sets up FastAPI app, router, and exception handlers.
 
 import logging
 import os
+from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from visionf1.router.router import router as course_router
+from visionf1.router.router import router
 from visionf1.ml.model_loader import ModelLoader
 from visionf1.ml.race_predictor import CachedRacePredictor
+from visionf1.ml.strategy_predictor import CachedStrategyPredictor
+
+load_dotenv()
 
 environment = os.getenv('ENVIRONMENT', 'development')
 
@@ -34,17 +38,25 @@ async def lifespan(app: FastAPI):
         loader = ModelLoader(cache_dir="./model_cache")
         paths = loader.download_all_artifacts()
         
-        # Initialize predictor
+        # Initialize race predictor
         predictor = CachedRacePredictor()
         predictor.initialize(
             model_path=paths["model"],
             history_path=paths["history_store"],
             features_path=paths["feature_names"]
         )
+
+        # Initialize strategy predictor
+        strategy_predictor = CachedStrategyPredictor()
+        strategy_predictor.initialize(
+            survival_model_path=paths["survival_models"],
+            next_compound_path=paths["next_compound_clf"],
+            circuit_pitloss_path=paths["circuit_pitloss"]
+        )
         
-        logger.info("ML predictor ready")
+        logger.info("ML predictors ready")
     except Exception as e:
-        logger.error(f"Failed to initialize ML predictor: {e}")
+        logger.error(f"Failed to initialize ML predictors: {e}")
         # raise  # Uncomment to force shutdown if it fails
     
     yield  # App runs here
@@ -71,7 +83,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-logger.info("Including routers...")
-app.include_router(course_router)
+logger.info("Including router...")
+app.include_router(router)
 
 logger.info("Application setup complete.")

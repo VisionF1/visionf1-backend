@@ -7,3 +7,4 @@ pandas
 cloudinary
 scikit-learn
 xgboost-cpu
+lifelines

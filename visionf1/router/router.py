@@ -4,8 +4,8 @@ Router definitions for VisionF1 endpoints.
 
 import logging
 from fastapi import APIRouter, HTTPException
-from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller, get_race_pace_controller, predict_race_controller
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, RacePredictionInput, RacePredictionResponse
+from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller, get_race_pace_controller, predict_race_controller, predict_strategy_controller
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, RacePredictionInput, RacePredictionResponse, StrategyRequest, StrategyPredictionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -126,3 +126,31 @@ async def predict_race_endpoint(drivers: list[RacePredictionInput]):
         )
     
     return predict_race_controller(drivers)
+
+@router.post("/predict-strategy", response_model=StrategyPredictionResponse, status_code=200, tags=["POST /predict-strategy"])
+async def predict_strategy_endpoint(req: StrategyRequest):
+    """
+    Predicts race strategy for a specific race.
+    
+    **Example request body:**
+    ```json
+    {
+        "circuit": "Silverstone",
+        "track_temp": 30.0,
+        "air_temp": 25.0,
+        "compounds": ["SOFT", "MEDIUM", "HARD"],
+        "max_stops": 2,
+        "fia_rule": false,
+        "top_k": 3
+    }
+    ```
+    
+    **Response:** Sorted predictions with probabilities
+    """
+    logger.info(f"POST /predict-strategy called for {req.circuit}")
+    
+    # Validation: circuit is required
+    if not req.circuit:
+        raise HTTPException(status_code=400, detail="Circuit is required")
+    
+    return predict_strategy_controller(req)
