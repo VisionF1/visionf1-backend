@@ -3,8 +3,8 @@ Service layer: Data managing logic.
 """
 
 import logging
-from visionf1.database.database import get_driver_standings, get_team_standings, get_drivers, get_upcoming_gp, get_events, get_summary_events, get_seasons, get_race_pace
-from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary, RacePace
+from visionf1.database.database import get_driver_standings, get_team_standings, get_drivers, get_upcoming_gp, get_events, get_summary_events, get_seasons, get_race_pace, get_clean_air_race_pace
+from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary, RacePace, CleanAirRacePace
 from typing import List
 
 logger = logging.getLogger(__name__)
@@ -64,3 +64,10 @@ def obtain_race_pace(season: int = None, round: int = None, event_id: str = None
     """
     logger.debug(f"Obtaining race pace season={season} round={round} event_id={event_id}")
     return get_race_pace(season=season, round=round, event_id=event_id)
+
+def obtain_clean_air_race_pace(season: int = None, round: int = None, event_id: str = None) -> List[CleanAirRacePace]:
+    """
+    Retrieves stored clean air race pace data (optionally filtered by season, round, or event_id).
+    """
+    logger.debug(f"Obtaining clean air race pace season={season} round={round} event_id={event_id}")
+    return get_clean_air_race_pace(season=season, round=round, event_id=event_id)

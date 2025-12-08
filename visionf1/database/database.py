@@ -6,7 +6,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary, RacePace
+from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary, RacePace, CleanAirRacePace
 from typing import List
 
 load_dotenv()
@@ -28,6 +28,7 @@ drivers_collection = database.drivers
 upcoming_gp_collection = database.upcoming_gp
 events_collection = database.events
 race_pace_collection = database.race_pace
+clean_air_race_pace_collection = database.clean_air_race_pace
 
 def get_driver_standings() -> List[DriverStanding]:
     """
@@ -214,4 +215,30 @@ def get_race_pace(season: int = None, round: int = None, event_id: str = None) -
         return results
     except Exception as e:
         logger.error(f"Error retrieving race pace from MongoDB: {e}")
+        raise e
+
+def get_clean_air_race_pace(season: int = None, round: int = None, event_id: str = None) -> List[CleanAirRacePace]:
+    """
+    Retrieve clean air race pace documents filtered by season+round or event_id.
+    """
+    logger.debug(f"Retrieving clean air race pace season={season} round={round} event_id={event_id}")
+    try:
+        query = {}
+        if event_id:
+            query["clean_air_race_pace_id"] = event_id
+        else:
+            if season is not None:
+                query["season"] = int(season)
+            if round is not None:
+                query["round"] = int(round)
+
+        cursor = clean_air_race_pace_collection.find(query, projection={"_id": False}).sort([("season", 1), ("round", 1), ("driver", 1)])
+        results = []
+        for doc in cursor:
+            doc.pop("_id", None)
+            results.append(CleanAirRacePace(**doc))
+        logger.debug(f"Retrieved {len(results)} clean air race pace records.")
+        return results
+    except Exception as e:
+        logger.error(f"Error retrieving clean air race pace from MongoDB: {e}")
         raise e

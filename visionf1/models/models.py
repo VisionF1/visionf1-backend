@@ -170,6 +170,33 @@ class RacePaceResponse(BaseModel):
     """
     data: List[RacePace]
 
+class CleanAirRacePace(BaseModel):
+    """
+    Model representing a clean air race pace entry.
+    """
+    clean_air_race_pace_id: str
+    season: int
+    round: int
+    event: str
+    driver: str
+    driver_first_name: str
+    driver_last_name: str
+    driver_position: int
+    driver_color: str
+    team: str
+    team_name: str
+    team_color: str
+    avg_laptime_clean_air: float | None
+    std_laptime_clean_air: float | None
+    clean_air_laps_count: int
+    clean_air_race_pace_position: int | None
+
+class CleanAirRacePaceResponse(BaseModel):
+    """
+    Schema for clean air race pace response.
+    """
+    data: List[CleanAirRacePace]
+
 class RacePredictionInput(BaseModel):
     """
     Input for race prediction endpoint.

@@ -4,8 +4,8 @@ Controller handles request validation, response formatting, and interaction with
 
 import logging
 import pandas as pd
-from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons, obtain_race_pace
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, RacePredictionInput, RacePredictionOutput, RacePredictionResponse, StrategyRequest, StrategyPrediction, StrategyPredictionResponse, Stint, Window
+from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons, obtain_race_pace, obtain_clean_air_race_pace
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, CleanAirRacePaceResponse, RacePredictionInput, RacePredictionOutput, RacePredictionResponse, StrategyRequest, StrategyPrediction, StrategyPredictionResponse, Stint, Window
 from visionf1.ml.race_predictor import CachedRacePredictor
 from visionf1.ml.strategy_predictor import CachedStrategyPredictor
 
@@ -101,6 +101,19 @@ def get_race_pace_controller(season: int = None, round: int = None, event_id: st
     logger.info(f"Retrieving race pace for season={season} round={round} event_id={event_id}")
     race_pace = obtain_race_pace(season=season, round=round, event_id=event_id)
     return RacePaceResponse(data=race_pace)
+
+def get_clean_air_race_pace_controller(season: int = None, round: int = None, event_id: str = None) -> CleanAirRacePaceResponse:
+    """
+    Retrieves clean air race pace data (optionally filtered by season, round, or event_id).
+    """
+    rp = obtain_clean_air_race_pace(season=season, round=round, event_id=event_id)
+    bad = _find_bad_entries(rp)
+    if bad:
+        for idx, key, val, doc in bad:
+            logger.error(f"Bad value in clean_air_race_pace result idx={idx} key={key} val={val} doc_sample={repr(doc)[:1000]}")
+    logger.info(f"Retrieving clean air race pace for season={season} round={round} event_id={event_id}")
+    clean_air_race_pace = obtain_clean_air_race_pace(season=season, round=round, event_id=event_id)
+    return CleanAirRacePaceResponse(data=clean_air_race_pace)
 
 def predict_race_controller(drivers: list[RacePredictionInput]) -> RacePredictionResponse:
     """
