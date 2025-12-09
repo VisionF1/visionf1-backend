@@ -197,6 +197,42 @@ class CleanAirRacePaceResponse(BaseModel):
     """
     data: List[CleanAirRacePace]
 
+class Lap(BaseModel):
+    """
+    Model representing a single lap.
+    """
+    lap_number: int
+    lap_time: float
+    compound: str | None
+    tyre_life: int | None
+
+class LapTimeDistribution(BaseModel):
+    """
+    Model representing a lap time distribution entry.
+    """
+    lap_time_distribution_id: str
+    season: int
+    round: int
+    event: str
+    driver: str
+    driver_first_name: str
+    driver_last_name: str
+    driver_position: int | None
+    driver_color: str
+    team: str | None
+    team_name: str | None
+    team_color: str
+    laps: List[Lap]
+    avg_laptime: float | None
+    std_laptime: float | None
+    race_pace_position: int | None
+
+class LapTimeDistributionResponse(BaseModel):
+    """
+    Schema for lap time distribution response.
+    """
+    data: List[LapTimeDistribution]
+
 class RacePredictionInput(BaseModel):
     """
     Input for race prediction endpoint.

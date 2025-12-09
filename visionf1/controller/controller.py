@@ -4,8 +4,8 @@ Controller handles request validation, response formatting, and interaction with
 
 import logging
 import pandas as pd
-from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons, obtain_race_pace, obtain_clean_air_race_pace
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, CleanAirRacePaceResponse, RacePredictionInput, RacePredictionOutput, RacePredictionResponse, StrategyRequest, StrategyPrediction, StrategyPredictionResponse, Stint, Window
+from visionf1.service.service import obtain_driver_standings, obtain_team_standings, obtain_drivers, obtain_upcoming_gp, obtain_events, obtain_summary_events, obtain_seasons, obtain_race_pace, obtain_clean_air_race_pace, obtain_lap_time_distributions
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, CleanAirRacePaceResponse, LapTimeDistributionResponse, RacePredictionInput, RacePredictionOutput, RacePredictionResponse, StrategyRequest, StrategyPrediction, StrategyPredictionResponse, Stint, Window
 from visionf1.ml.race_predictor import CachedRacePredictor
 from visionf1.ml.strategy_predictor import CachedStrategyPredictor
 
@@ -114,6 +114,19 @@ def get_clean_air_race_pace_controller(season: int = None, round: int = None, ev
     logger.info(f"Retrieving clean air race pace for season={season} round={round} event_id={event_id}")
     clean_air_race_pace = obtain_clean_air_race_pace(season=season, round=round, event_id=event_id)
     return CleanAirRacePaceResponse(data=clean_air_race_pace)
+
+def get_lap_time_distributions_controller(season: int = None, round: int = None, event_id: str = None) -> LapTimeDistributionResponse:
+    """
+    Retrieves lap time distribution data (optionally filtered by season, round, or event_id).
+    """
+    ltd = obtain_lap_time_distributions(season=season, round=round, event_id=event_id)
+    bad = _find_bad_entries(ltd)
+    if bad:
+        for idx, key, val, doc in bad:
+            logger.error(f"Bad value in lap_time_distributions result idx={idx} key={key} val={val} doc_sample={repr(doc)[:1000]}")
+    logger.info(f"Retrieving lap time distributions for season={season} round={round} event_id={event_id}")
+    lap_time_distributions = obtain_lap_time_distributions(season=season, round=round, event_id=event_id)
+    return LapTimeDistributionResponse(data=lap_time_distributions)
 
 def predict_race_controller(drivers: list[RacePredictionInput]) -> RacePredictionResponse:
     """

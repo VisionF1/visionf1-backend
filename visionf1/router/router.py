@@ -4,8 +4,8 @@ Router definitions for VisionF1 endpoints.
 
 import logging
 from fastapi import APIRouter, HTTPException
-from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller, get_race_pace_controller, get_clean_air_race_pace_controller, predict_race_controller, predict_strategy_controller
-from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, CleanAirRacePaceResponse, RacePredictionInput, RacePredictionResponse, StrategyRequest, StrategyPredictionResponse
+from visionf1.controller.controller import get_driver_standings_controller, get_team_standings_controller, get_drivers_controller, get_upcoming_gp_controller, get_events_controller, get_summary_events_controller, get_seasons_controller, get_race_pace_controller, get_clean_air_race_pace_controller, get_lap_time_distributions_controller, predict_race_controller, predict_strategy_controller
+from visionf1.models.models import DriverStandingsResponse, TeamStandingsResponse, DriversResponse, UpcomingGPResponse, EventsResponse, EventsSummaryResponse, SeasonsResponse, RacePaceResponse, CleanAirRacePaceResponse, LapTimeDistributionResponse, RacePredictionInput, RacePredictionResponse, StrategyRequest, StrategyPredictionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +93,17 @@ async def get_clean_air_race_pace_endpoint(season: int = None, round: int = None
     """
     logger.info(f"GET /clean-air-race-pace called season={season} round={round} event_id={event_id}")
     return get_clean_air_race_pace_controller(season=season, round=round, event_id=event_id)
+
+@router.get("/lap-time-distributions", response_model=LapTimeDistributionResponse, status_code=200, tags=["GET /lap-time-distributions"])
+async def get_lap_time_distributions_endpoint(season: int = None, round: int = None, event_id: str = None):
+    """
+    Routes GET /lap-time-distributions?season=YYYY&round=N endpoint
+            or
+           GET /lap-time-distributions?event_id=SEASON_ROUND_EventName endpoint.
+    Returns lap time distributions for all drivers in the GP.
+    """
+    logger.info(f"GET /lap-time-distributions called season={season} round={round} event_id={event_id}")
+    return get_lap_time_distributions_controller(season=season, round=round, event_id=event_id)
 
 @router.post("/predict-race", response_model=RacePredictionResponse, status_code=200, tags=["POST /predict-race"])
 async def predict_race_endpoint(drivers: list[RacePredictionInput]):

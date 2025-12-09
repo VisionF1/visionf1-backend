@@ -6,7 +6,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary, RacePace, CleanAirRacePace
+from visionf1.models.models import DriverStanding, TeamStanding, Driver, UpcomingGP, Event, EventSummary, RacePace, CleanAirRacePace, LapTimeDistribution
 from typing import List
 
 load_dotenv()
@@ -29,6 +29,7 @@ upcoming_gp_collection = database.upcoming_gp
 events_collection = database.events
 race_pace_collection = database.race_pace
 clean_air_race_pace_collection = database.clean_air_race_pace
+lap_time_distributions_collection = database.lap_time_distributions
 
 def get_driver_standings() -> List[DriverStanding]:
     """
@@ -241,4 +242,30 @@ def get_clean_air_race_pace(season: int = None, round: int = None, event_id: str
         return results
     except Exception as e:
         logger.error(f"Error retrieving clean air race pace from MongoDB: {e}")
+        raise e
+
+def get_lap_time_distributions(season: int = None, round: int = None, event_id: str = None) -> List[LapTimeDistribution]:
+    """
+    Retrieve lap time distribution documents filtered by season+round or event_id.
+    """
+    logger.debug(f"Retrieving lap time distributions season={season} round={round} event_id={event_id}")
+    try:
+        query = {}
+        if event_id:
+            query["lap_time_distribution_id"] = event_id
+        else:
+            if season is not None:
+                query["season"] = int(season)
+            if round is not None:
+                query["round"] = int(round)
+
+        cursor = lap_time_distributions_collection.find(query, projection={"_id": False}).sort([("season", 1), ("round", 1), ("driver", 1)])
+        results = []
+        for doc in cursor:
+            doc.pop("_id", None)
+            results.append(LapTimeDistribution(**doc))
+        logger.debug(f"Retrieved {len(results)} lap time distribution records.")
+        return results
+    except Exception as e:
+        logger.error(f"Error retrieving lap time distributions from MongoDB: {e}")
         raise e
